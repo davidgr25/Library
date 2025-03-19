@@ -1,0 +1,46 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex; /* Para alinear el menú y el contenido */
+}
+
+/* Menú vertical */
+.menu {
+    width: 200px;
+    height: 100vh; /* Ocupa toda la altura de la pantalla */
+    background-color: #007bff;
+    padding-top: 20px;
+    position: fixed; /* Fija el menú en la pantalla */
+    left: 0;
+    top: 0;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu li {
+    margin: 10px 0;
+}
+
+.menu a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    padding-left: 20px;
+    font-weight: bold;
+}
+
+.menu a:hover {
+    background-color: #0056b3;
+}
+
+/* Contenido principal */
+.contenido {
+    margin-left: 220px; /* Empuja el contenido para que no quede detrás del menú */
+    padding: 20px;
+}
