@@ -9,12 +9,20 @@ include("con_db.php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio - Biblioteca</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
+
+
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+            background: url(biblioteca.jpg); 
+            background-size: 100%;
         }
 
         .barra-superior {
@@ -82,7 +90,7 @@ include("con_db.php");
         }
 
         .results {
-            background: white;
+            background: rgb(255, 255, 255, 0.9);
             max-width: 500px;
             margin: 10px auto;
             padding: 10px;
@@ -98,6 +106,17 @@ include("con_db.php");
         .result-item:last-child {
             border-bottom: none;
         }
+        .mensaje-bienvenida {
+            font-family: "Caveat", cursive;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: rgb(0, 123, 255, 0.5);
+            text-align: center;
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
@@ -111,7 +130,9 @@ include("con_db.php");
             <button onclick="window.location.href='Register.php'">Registrar Libro</button>
         </div>
     </div>
-
+    <div class="mensaje-bienvenida">
+        Bienvenido a la biblioteca
+    </div>
     <div id="resultados" class="results"></div>
 
 <script>
@@ -131,7 +152,7 @@ function buscarLibro() {
             data.forEach(libro => {
                 resultadosHTML += `
                     <div class="result-item">
-                        <a href="libro.php?id=${encodeURIComponent(libro.ID_Libro)}" target="_blank" style="text-decoration: none; color: black;">
+                        <a href="libro.php?id=${encodeURIComponent(libro.ID_Libro)}" style="text-decoration: none; color: black;">
                             <strong>${libro.titulo}</strong><br>
                             Autor: <em>${libro.autor}</em><br>
                             Existencias: ${libro.existencia}

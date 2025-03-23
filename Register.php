@@ -127,7 +127,7 @@
         }
 
         body {
-            background: url(JulioMyAmor.jpg); 
+            background: url(biblioteca.jpg); 
             background-size: 50%;
         }
         .Amigos {
@@ -143,9 +143,6 @@
         <div class="titulo">Registro de Libros</div>
         <div class= "Amigos">Amigos de David</div>
     </div>
-
-    <h2 style="text-align:center;">Registro de Libros</h2>
-
     <div class="container">
         <form id="libroForm">
             <label for="titulo">Título:</label>
@@ -159,6 +156,15 @@
 
             <label for="existencia">Existencia:</label>
             <input type="number" name="existencia" id="existencia" required>
+
+            <label for="estanteria">Estanteria:</label>
+            <input type="text" name="estanteria" id="estanteria" maxlength="2" required>
+
+            <label for="piso">Piso:</label>
+            <input type="number" name="piso" id="piso" min="1" max="4" required>
+
+            <label for="nivel">Nivel:</label>
+            <input type="number" name="nivel" id="nivel" min="1" max="2" required>
 
             <label for="fecha_publicacion">Fecha de Publicación:</label>
             <input type="date" name="fecha_publicacion" id="fecha_publicacion" required>

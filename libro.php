@@ -25,15 +25,94 @@ if (isset($_GET['id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($libro['titulo']); ?></title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: #f4f4f4;
         }
-
-        /* Barra azul */
+        .imagen{
+            width: 200px;
+            height: 300px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px gray;
+            max-width: 600px;
+            margin: 100px auto 20px auto;
+            text-align: center;
+        }
+        .book-info {
+            text-align: left;
+        }
+        .botones {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            width: 48%;
+        }
+        .btn-editar {
+            background-color: #ffc107;
+        }
+        .btn-editar:hover {
+            background-color: #e0a800;
+        }
+        .btn-eliminar {
+            background-color: #dc3545;
+        }
+        .btn-eliminar:hover {
+            background-color: #c82333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 5px;
+            width: 50%;
+            text-align: center;
+        }
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .campo {
+            width: 55%;
+            padding: 5px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        .guardar {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 48%;
+            background-color: #ffc107;
+        }
         .barra-superior {
             background-color: #007bff;
             color: white;
@@ -49,12 +128,6 @@ if (isset($_GET['id'])) {
             width: 100%;
             z-index: 1000;
         }
-
-        .titulo {
-            text-align: center;
-            flex: 1;
-        }
-
         .btn-regresar {
             background-color: #28a745;
             color: white;
@@ -65,50 +138,24 @@ if (isset($_GET['id'])) {
             text-decoration: none;
             font-size: 16px;
         }
-
         .btn-regresar:hover {
             background-color: #218838;
         }
-
-        /* Ajuste del contenido para evitar que lo tape la barra */
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px gray;
-            max-width: 600px;
-            margin: 100px auto 20px auto; /* Espacio para la barra */
+        .titulo {
             text-align: center;
+            flex: 1;
         }
-
-        .book-info {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .book-info p {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-
-        .book-info img {
-            max-width: 300px;
-            height: auto;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        .Amigos{
+        .Amigos {
             padding-right: 25px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Barra superior -->
     <div class="barra-superior">
         <a href="inicio.php" class="btn-regresar">Volver al Inicio</a>
-        <div class="titulo">Información del Libro</div>
-        <div class="Amigos">Amigos de David</div>
+        <div class="titulo">Informacion de Libro</div>
+        <div class= "Amigos">Amigos de David</div>
     </div>
 
     <div class="container">
@@ -118,21 +165,77 @@ if (isset($_GET['id'])) {
             <p><strong>Autor:</strong> <?php echo htmlspecialchars($libro['autor']); ?></p>
             <p><strong>Descripción:</strong> <?php echo htmlspecialchars($libro['descripcion']); ?></p>
             <p><strong>Existencias:</strong> <?php echo htmlspecialchars($libro['existencia']); ?></p>
-            <p><strong>Fecha de Publicación:</strong> <?php echo htmlspecialchars($libro['fecha_de_publicacion']); ?></p>
+            <p><strong>Estanteria:</strong> <?php echo htmlspecialchars($libro['estanteria']); ?></p>
+            <p><strong>Piso:</strong> <?php echo htmlspecialchars($libro['piso']); ?></p>
+            <p><strong>Nivel:</strong> <?php echo htmlspecialchars($libro['nivel']); ?></p>
 
-            <?php
-            if (!empty($libro['portada'])) {
-                $imagen_base64 = base64_encode($libro['portada']);
-                $imagen_src = 'data:image/jpeg;base64,' . $imagen_base64;
-            } else {
-                $imagen_src = 'ruta/a/imagen/default.jpg';
-            }
-            ?>
-            
-            <img src="<?php echo $imagen_src; ?>" alt="Portada del libro">
-            
+            <img class = "imagen" src="<?php echo !empty($libro['portada']) ? 'data:image/jpeg;base64,' . base64_encode($libro['portada']) : 'ruta/a/imagen/default.jpg'; ?>" alt="Portada del libro">
+        </div>
+
+        <div class="botones">
+            <button class="btn btn-editar" onclick="abrirModal()">Editar Información</button>
+            <button class="btn btn-eliminar" onclick="eliminarLibro(<?php echo $id; ?>)">Eliminar Libro</button>
         </div>
     </div>
+
+    <!-- Modal de edición -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2>Editar Libro</h2>
+            <form id="formEditar">
+                <input type="hidden" name="id" value="<?php echo $id; ?>">
+                <label>Título:</label>
+                <input class="campo" type="text" name="titulo" value="<?php echo htmlspecialchars($libro['titulo']); ?>" required><br>
+                <label>Autor:</label>
+                <input class="campo" type="text" name="autor" value="<?php echo htmlspecialchars($libro['autor']); ?>" required><br>
+                <label>Existencias:</label>
+                <input class="campo" type="number" name="existencia" value="<?php echo htmlspecialchars($libro['existencia']); ?>" required><br>
+                <label>Estantería:</label>
+                <input class="campo" type="text" name="estanteria" maxlength="2" value="<?php echo htmlspecialchars($libro['estanteria']); ?>" required><br>
+                <label>Piso:</label>
+                <input class="campo" type="number" name="piso" min="1" max="4" value="<?php echo htmlspecialchars($libro['piso']); ?>" required><br>
+                <label>Nivel:</label>
+                <input class="campo" type="number" name="nivel" min="1" max="9" value="<?php echo htmlspecialchars($libro['nivel']); ?>" required><br>
+                <label>Descripción:</label>
+                <textarea class="campo" name="descripcion" required><?php echo htmlspecialchars($libro['descripcion']); ?></textarea><br>
+                <button class="guardar" type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function abrirModal() {
+            document.getElementById("modalEditar").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modalEditar").style.display = "none";
+        }
+
+        document.getElementById("formEditar").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let formData = new FormData(this);
+            
+            fetch("editar_libro.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    icon: data.success ? "success" : "error",
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
 </html>
