@@ -85,7 +85,7 @@ if (isset($_GET['id'])) {
         }
         .modal-content {
             background-color: white;
-            margin: 10% auto;
+            margin: 5% auto;
             padding: 20px;
             border-radius: 5px;
             width: 50%;
@@ -163,11 +163,11 @@ if (isset($_GET['id'])) {
 
         <div class="book-info">
             <p><strong>Autor:</strong> <?php echo htmlspecialchars($libro['autor']); ?></p>
-            <p><strong>Descripción:</strong> <?php echo htmlspecialchars($libro['descripcion']); ?></p>
             <p><strong>Existencias:</strong> <?php echo htmlspecialchars($libro['existencia']); ?></p>
             <p><strong>Estanteria:</strong> <?php echo htmlspecialchars($libro['estanteria']); ?></p>
             <p><strong>Piso:</strong> <?php echo htmlspecialchars($libro['piso']); ?></p>
             <p><strong>Nivel:</strong> <?php echo htmlspecialchars($libro['nivel']); ?></p>
+            <p><strong>Descripción:</strong> <?php echo htmlspecialchars($libro['descripcion']); ?></p>
 
             <img class = "imagen" src="<?php echo !empty($libro['portada']) ? 'data:image/jpeg;base64,' . base64_encode($libro['portada']) : 'ruta/a/imagen/default.jpg'; ?>" alt="Portada del libro">
         </div>
@@ -199,6 +199,8 @@ if (isset($_GET['id'])) {
                 <input class="campo" type="number" name="nivel" min="1" max="9" value="<?php echo htmlspecialchars($libro['nivel']); ?>" required><br>
                 <label>Descripción:</label>
                 <textarea class="campo" name="descripcion" required><?php echo htmlspecialchars($libro['descripcion']); ?></textarea><br>
+                <label>Portada:</label>
+                <input class="campo" type="file" name="portada" accept="image/*"><br>
                 <button class="guardar" type="submit">Guardar Cambios</button>
             </form>
         </div>
@@ -235,6 +237,35 @@ if (isset($_GET['id'])) {
                 });
             });
         });
+        function eliminarLibro(id) {
+            Swal.fire({
+                title: "¿Estás seguro?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("eliminar_libro.php?id=" + id, { method: "GET" })
+                        .then(response => response.json())
+                        .then(data => {
+                            Swal.fire({
+                                icon: data.success ? "success" : "error",
+                                title: data.message,
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(() => {
+                                if (data.success) {
+                                    window.location.href = "inicio.php";
+                                }
+                            });
+                        });
+                }
+            });
+        }
     </script>
 
 </body>

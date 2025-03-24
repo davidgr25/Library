@@ -56,7 +56,7 @@
         }
 
         form {
-            background: white;
+            background: rgb(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0px 0px 10px 0px gray;
