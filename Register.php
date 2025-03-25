@@ -179,6 +179,11 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let today = new Date().toISOString().split("T")[0];
+            document.getElementById("fecha_publicacion").setAttribute("max", today);
+        });
+
         document.getElementById("libroForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Evitar que se recargue la página
 

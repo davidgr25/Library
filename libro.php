@@ -30,6 +30,8 @@ if (isset($_GET['id'])) {
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            background: url(biblioteca.jpg); 
+            background-size: 100%;
         }
         .imagen{
             width: 200px;

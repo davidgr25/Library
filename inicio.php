@@ -116,6 +116,11 @@ include("con_db.php");
             color: rgb(0, 123, 255, 0.5);
             text-align: center;
             z-index: -1;
+            text-shadow: 
+            -1px -1px 0 white,  
+            1px -1px 0 white,
+            -1px  1px 0 white,
+            1px  1px 0 white;
         }
     </style>
 </head>
