@@ -132,7 +132,7 @@ include("con_db.php");
         </div>
         <div class="titulo-central">Amigos de David</div>
         <div class="boton-derecha">
-            <button onclick="window.location.href='Register.php'">Registrar Libro</button>
+            <button onclick="verificarContraseña()">Registrar Libro</button>
         </div>
     </div>
     <div class="mensaje-bienvenida">
@@ -141,6 +141,67 @@ include("con_db.php");
     <div id="resultados" class="results"></div>
 
 <script>
+    let intentos = 0;
+    const maxIntentos = 3;
+    const tiempoMaximo = 2 * 24 * 60 * 60 * 1000; 
+    const contrasure = "78cd83e78ae0f4e070a553bd25b365f6236892b8f21f4a17b24c8829c2bdf322"; 
+
+    async function hashContraseña(contraseña) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(contraseña);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function verificarContraseña() {
+        let bloqueoHasta = localStorage.getItem("bloqueo");
+        let tiempoEspera = parseInt(localStorage.getItem("tiempoEspera")) || 30000; // 30 segundos iniciales
+
+        if (bloqueoHasta && new Date().getTime() < bloqueoHasta) {
+            let tiempoRestante = Math.ceil((bloqueoHasta - new Date().getTime()) / 1000);
+            Swal.fire("Acceso bloqueado", `Intenta de nuevo en ${tiempoRestante} segundos`, "error");
+            return;
+        }
+
+        Swal.fire({
+            title: "Ingrese la contraseña",
+            input: "password",
+            inputPlaceholder: "Contraseña",
+            showCancelButton: true,
+            confirmButtonText: "Ingresar",
+            cancelButtonText: "Cancelar",
+            inputAttributes: {
+                maxlength: 20,
+                autocapitalize: "off",
+                autocorrect: "off"
+            }
+        }).then(async (resultado) => {
+            if (resultado.isConfirmed) {
+                let hashIngresado = await hashContraseña(resultado.value);
+
+                if (hashIngresado === contrasure) {
+                    Swal.fire("Acceso concedido", "Redirigiendo...", "success");
+                    localStorage.removeItem("bloqueo");
+                    localStorage.removeItem("tiempoEspera");
+                    intentos = 0;
+                    setTimeout(() => {
+                        window.location.href = "Register.php";
+                    }, 1000);
+                } else {
+                    intentos++;
+                    if (intentos >= maxIntentos) {
+                        let nuevoBloqueoHasta = new Date().getTime() + tiempoEspera;
+                        localStorage.setItem("bloqueo", nuevoBloqueoHasta);
+                        localStorage.setItem("tiempoEspera", Math.min(tiempoEspera * 2, tiempoMaximo)); // Duplica el tiempo hasta 2 días
+                        Swal.fire("Acceso bloqueado", `Demasiados intentos. Espera ${tiempoEspera / 1000} segundos.`, "error");
+                        intentos = 0; // Reiniciar intentos tras bloqueo
+                    } else {
+                        Swal.fire("Contraseña incorrecta", `Intento ${intentos} de ${maxIntentos}`, "error");
+                    }
+                }
+            }
+        });
+    }
 function buscarLibro() {
     let query = document.getElementById("search").value;
 
