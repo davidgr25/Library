@@ -155,7 +155,7 @@ if (isset($_GET['id'])) {
 <body>
 
     <div class="barra-superior">
-        <a href="inicio.php" class="btn-regresar">Volver al Inicio</a>
+        <a href="inicioadmin.php" class="btn-regresar">Volver al Inicio</a>
         <div class="titulo">Informacion de Libro</div>
         <div class= "Amigos">Amigos de David</div>
     </div>
@@ -173,7 +173,103 @@ if (isset($_GET['id'])) {
 
             <img class = "imagen" src="<?php echo !empty($libro['portada']) ? 'data:image/jpeg;base64,' . base64_encode($libro['portada']) : 'ruta/a/imagen/default.jpg'; ?>" alt="Portada del libro">
         </div>
+
+        <div class="botones">
+            <button class="btn btn-editar" onclick="abrirModal()">Editar Información</button>
+            <button class="btn btn-eliminar" onclick="eliminarLibro(<?php echo $id; ?>)">Eliminar Libro</button>
+        </div>
     </div>
+
+    <!-- Modal de edición -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2>Editar Libro</h2>
+            <form id="formEditar">
+                <input type="hidden" name="id" value="<?php echo $id; ?>">
+                <label>Título:</label>
+                <input class="campo" type="text" name="titulo" value="<?php echo htmlspecialchars($libro['titulo']); ?>" required><br>
+                <label>Autor:</label>
+                <input class="campo" type="text" name="autor" value="<?php echo htmlspecialchars($libro['autor']); ?>" required><br>
+                <label>Existencias:</label>
+                <input class="campo" type="number" name="existencia" value="<?php echo htmlspecialchars($libro['existencia']); ?>" required><br>
+                <label>Estantería:</label>
+                <input class="campo" type="text" name="estanteria" maxlength="2" value="<?php echo htmlspecialchars($libro['estanteria']); ?>" required><br>
+                <label>Piso:</label>
+                <input class="campo" type="number" name="piso" min="1" max="4" value="<?php echo htmlspecialchars($libro['piso']); ?>" required><br>
+                <label>Nivel:</label>
+                <input class="campo" type="number" name="nivel" min="1" max="9" value="<?php echo htmlspecialchars($libro['nivel']); ?>" required><br>
+                <label>Descripción:</label>
+                <textarea class="campo" name="descripcion" required><?php echo htmlspecialchars($libro['descripcion']); ?></textarea><br>
+                <label>Portada:</label>
+                <input class="campo" type="file" name="portada" accept="image/*"><br>
+                <button class="guardar" type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+
+        function abrirModal() {
+            document.getElementById("modalEditar").style.display = "block";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modalEditar").style.display = "none";
+        }
+
+        document.getElementById("formEditar").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let formData = new FormData(this);
+            
+            fetch("editar_libro.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.fire({
+                    icon: data.success ? "success" : "error",
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+        function eliminarLibro(id) {
+            Swal.fire({
+                title: "¿Estás seguro?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("eliminar_libro.php?id=" + id, { method: "GET" })
+                        .then(response => response.json())
+                        .then(data => {
+                            Swal.fire({
+                                icon: data.success ? "success" : "error",
+                                title: data.message,
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(() => {
+                                if (data.success) {
+                                    window.location.href = "inicio.php";
+                                }
+                            });
+                        });
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

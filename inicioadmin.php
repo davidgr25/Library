@@ -13,9 +13,6 @@ include("con_db.php");
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
-
-
-
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -28,7 +25,7 @@ include("con_db.php");
         .barra-superior {
             background-color: #007bff;
             color: white;
-            padding: 20px;
+            padding: 15px;
             font-size: 22px;
             font-weight: bold;
             position: fixed;
@@ -58,13 +55,33 @@ include("con_db.php");
             flex: 2;
             text-align: center;
             font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
 
         .boton-derecha {
             flex: 1;
             text-align: right;
             padding-right: 20px;
-            color: transparent;
+        }
+
+        .boton-derecha button {
+            padding: 15px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .boton-derecha button:hover {
+            background-color: #218838;
+        }
+        .boton-derecha {
+            padding-right: 25px;
         }
         body {
             margin: 0;
@@ -105,16 +122,30 @@ include("con_db.php");
             -1px  1px 0 white,
             1px  1px 0 white;
         }
+        .btn-regresar {
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            padding-right: 25px;
+        }
     </style>
 </head>
 <body>
-
+    
     <div class="barra-superior">
         <div class="search-container">
             <input type="text" id="search" placeholder="Buscar libro..." onkeyup="buscarLibro()">
         </div>
         <div class="titulo-central">Amigos de David</div>
-        <div class="boton-derecha"><a href="inicioadmin.php" style="color: transparent">ADMIN</a></div>
+        <div class="btn-regresar">
+        <div class="boton-derecha">
+            <button onclick="window.location.href='Register.php'">Registrar Libro</button>
+        </div>
+        </div>
     </div>
     <div class="mensaje-bienvenida">
         Bienvenido a la biblioteca
@@ -122,6 +153,67 @@ include("con_db.php");
     <div id="resultados" class="results"></div>
 
 <script>
+// Hash de la contraseña correcta (SHA-256 de "admin123")
+const HASH_CORRECTO = "78cd83e78ae0f4e070a553bd25b365f6236892b8f21f4a17b24c8829c2bdf322";
+
+// Función para generar hash SHA-256
+async function generarSHA256(texto) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(texto);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// Función para verificar la contraseña
+async function verificarAcceso() {
+    const { value: contrasena } = await Swal.fire({
+        title: 'Acceso restringido',
+        html: '<input type="password" id="contrasena" class="swal2-input" placeholder="Contraseña">',
+        confirmButtonText: 'Ingresar',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        preConfirm: async () => {
+            const input = Swal.getPopup().querySelector('#contrasena');
+            const contrasenaIngresada = input.value;
+            
+            if (!contrasenaIngresada) {
+                Swal.showValidationMessage('Por favor ingresa la contraseña');
+                return false;
+            }
+            
+            const hashIngresado = await generarSHA256(contrasenaIngresada);
+            
+            if (hashIngresado !== HASH_CORRECTO) {
+                Swal.showValidationMessage('Contraseña incorrecta');
+                return false;
+            }
+            
+            // Marcar como autenticado en sessionStorage
+            sessionStorage.setItem('autenticado', 'true');
+            return true;
+        }
+    });
+    
+    if (!contrasena) {
+        return verificarAcceso();
+    }
+}
+
+// Verificar autenticación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si viene de inicio.php (el referente contiene "inicio.php")
+    const vieneDeInicio = document.referrer.indexOf('inicio.php') !== -1;
+    
+    // Si viene de inicio.php o no está autenticado, pedir contraseña
+    if (vieneDeInicio || !sessionStorage.getItem('autenticado')) {
+        verificarAcceso();
+    }
+});
+
+// Función para buscar libros
 function buscarLibro() {
     let query = document.getElementById("search").value;
 
@@ -138,7 +230,7 @@ function buscarLibro() {
             data.forEach(libro => {
                 resultadosHTML += `
                     <div class="result-item">
-                        <a href="libro.php?id=${encodeURIComponent(libro.ID_Libro)}" style="text-decoration: none; color: black;">
+                        <a href="libroadmin.php?id=${encodeURIComponent(libro.ID_Libro)}" style="text-decoration: none; color: black;">
                             <strong>${libro.titulo}</strong><br>
                             Autor: <em>${libro.autor}</em><br>
                             Existencias: ${libro.existencia}
@@ -153,7 +245,6 @@ function buscarLibro() {
     })
     .catch(error => console.error("Error en la búsqueda:", error));
 }
-
 </script>
 
 </body>

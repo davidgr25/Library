@@ -139,7 +139,7 @@
 
     <!-- Barra superior -->
     <div class="barra-superior">
-        <a href="inicio.php" class="btn-regresar">Volver al Inicio</a>
+        <a href="inicioadmin.php" class="btn-regresar" onclick="sessionStorage.setItem('autenticado', 'true')">Volver al Inicio</a>
         <div class="titulo">Registro de Libros</div>
         <div class= "Amigos">Amigos de David</div>
     </div>
@@ -158,7 +158,7 @@
             <input type="number" name="existencia" id="existencia" required>
 
             <label for="estanteria">Estanteria:</label>
-            <input type="text" name="estanteria" id="estanteria" maxlength="2" required>
+            <input type="text" name="estanteria" id="estanteria" maxlength="2" required oninput="this.value = this.value.toUpperCase()">
 
             <label for="piso">Piso:</label>
             <input type="number" name="piso" id="piso" min="1" max="4" required>
