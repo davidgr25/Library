@@ -65,6 +65,7 @@ include("con_db.php");
             text-align: right;
             padding-right: 20px;
             color: transparent;
+            font-size: 50px;
         }
         body {
             margin: 0;
@@ -85,7 +86,6 @@ include("con_db.php");
             padding: 10px;
             border-bottom: 1px solid #ddd;
         }
-
         .result-item:last-child {
             border-bottom: none;
         }
@@ -114,13 +114,12 @@ include("con_db.php");
             <input type="text" id="search" placeholder="Buscar libro..." onkeyup="buscarLibro()">
         </div>
         <div class="titulo-central">Amigos de David</div>
-        <div class="boton-derecha"><a href="inicioadmin.php" style="color: transparent">ADMIN</a></div>
+        <div class="boton-derecha"><a href="inicioadmin.php" style="color: transparent">.</a></div>
     </div>
     <div class="mensaje-bienvenida">
         Bienvenido a la biblioteca
     </div>
     <div id="resultados" class="results"></div>
-
 <script>
 function buscarLibro() {
     let query = document.getElementById("search").value;
@@ -129,7 +128,6 @@ function buscarLibro() {
         document.getElementById("resultados").innerHTML = "";
         return;
     }
-
     fetch("buscar_libro.php?q=" + query)
     .then(response => response.json())
     .then(data => {

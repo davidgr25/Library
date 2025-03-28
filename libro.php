@@ -168,7 +168,6 @@ if (isset($_GET['id'])) {
             <p><strong>Existencias:</strong> <?php echo htmlspecialchars($libro['existencia']); ?></p>
             <p><strong>Estanteria:</strong> <?php echo htmlspecialchars($libro['estanteria']); ?></p>
             <p><strong>Piso:</strong> <?php echo htmlspecialchars($libro['piso']); ?></p>
-            <p><strong>Nivel:</strong> <?php echo htmlspecialchars($libro['nivel']); ?></p>
             <p><strong>Descripción:</strong> <?php echo htmlspecialchars($libro['descripcion']); ?></p>
 
             <img class = "imagen" src="<?php echo !empty($libro['portada']) ? 'data:image/jpeg;base64,' . base64_encode($libro['portada']) : 'ruta/a/imagen/default.jpg'; ?>" alt="Portada del libro">

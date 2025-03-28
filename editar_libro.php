@@ -11,17 +11,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $existencia = intval($_POST['existencia']);
     $estanteria = $_POST['estanteria'];
     $piso = intval($_POST['piso']);
-    $nivel = $_POST['nivel'];
 
     if (!empty($_FILES['portada']['tmp_name'])) {
         $imagen = file_get_contents($_FILES['portada']['tmp_name']);
         
-        $stmt = $conex->prepare("UPDATE Libros SET titulo=?, autor=?, descripcion=?, existencia=?, estanteria=?, piso=?, nivel=?, portada=? WHERE ID_Libro=?");
-        $stmt->bind_param("sssisssbi", $titulo, $autor, $descripcion, $existencia, $estanteria, $piso, $nivel, $null, $id);
+        $stmt = $conex->prepare("UPDATE Libros SET titulo=?, autor=?, descripcion=?, existencia=?, estanteria=?, piso=?, portada=? WHERE ID_Libro=?");
+        $stmt->bind_param("sssissbi", $titulo, $autor, $descripcion, $existencia, $estanteria, $piso, $null, $id);
         $stmt->send_long_data(7, $imagen); // Enviar la imagen en el parámetro 7
     } else {
-        $stmt = $conex->prepare("UPDATE Libros SET titulo=?, autor=?, descripcion=?, existencia=?, estanteria=?, piso=?, nivel=? WHERE ID_Libro=?");
-        $stmt->bind_param("sssisssi", $titulo, $autor, $descripcion, $existencia, $estanteria, $piso, $nivel, $id);
+        $stmt = $conex->prepare("UPDATE Libros SET titulo=?, autor=?, descripcion=?, existencia=?, estanteria=?, piso=? WHERE ID_Libro=?");
+        $stmt->bind_param("sssissi", $titulo, $autor, $descripcion, $existencia, $estanteria, $piso, $id);
     }
 
     if ($stmt->execute()) {

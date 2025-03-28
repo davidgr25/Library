@@ -163,9 +163,6 @@
             <label for="piso">Piso:</label>
             <input type="number" name="piso" id="piso" min="1" max="4" required>
 
-            <label for="nivel">Nivel:</label>
-            <input type="number" name="nivel" id="nivel" min="1" max="2" required>
-
             <label for="fecha_publicacion">Fecha de Publicación:</label>
             <input type="date" name="fecha_publicacion" id="fecha_publicacion" required>
 

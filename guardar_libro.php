@@ -3,7 +3,7 @@ include("con_db.php");
 
 $response = ["success" => false, "message" => ""];
 
-if (isset($_POST['titulo']) && isset($_POST['autor']) && isset($_POST['descripcion']) && isset($_POST['existencia']) && isset($_POST['fecha_publicacion']) && isset($_POST['estanteria']) && isset($_POST['piso']) && isset($_POST['nivel'])) {
+if (isset($_POST['titulo']) && isset($_POST['autor']) && isset($_POST['descripcion']) && isset($_POST['existencia']) && isset($_POST['fecha_publicacion']) && isset($_POST['estanteria']) && isset($_POST['piso'])) {
     $titulo = trim($_POST['titulo']);
     $autor = trim($_POST['autor']);
     $descripcion = trim($_POST['descripcion']);
@@ -11,7 +11,6 @@ if (isset($_POST['titulo']) && isset($_POST['autor']) && isset($_POST['descripci
     $fecha_publicacion = trim($_POST['fecha_publicacion']);
     $estanteria = trim($_POST['estanteria']);
     $piso = trim($_POST['piso']);
-    $nivel = trim($_POST['nivel']);
 
     // Verificar si el libro ya está registrado
     $check_stmt = $conex->prepare("SELECT existencia FROM Libros WHERE titulo = ?");
@@ -44,10 +43,10 @@ if (isset($_POST['titulo']) && isset($_POST['autor']) && isset($_POST['descripci
         }
         
         // Modificar la consulta para almacenar la imagen en formato binario
-        $insert_stmt = $conex->prepare("INSERT INTO Libros (titulo, autor, descripcion, existencia, fecha_de_publicacion, portada, estanteria, piso, nivel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insert_stmt = $conex->prepare("INSERT INTO Libros (titulo, autor, descripcion, existencia, fecha_de_publicacion, portada, estanteria, piso) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         
         // Usamos "b" (binary) en el bind_param para manejar los datos binarios
-        $insert_stmt->bind_param("sssisbsii", $titulo, $autor, $descripcion, $existencia, $fecha_publicacion, $portada, $estanteria, $piso, $nivel);
+        $insert_stmt->bind_param("sssisbsi", $titulo, $autor, $descripcion, $existencia, $fecha_publicacion, $portada, $estanteria, $piso);
         $insert_stmt->send_long_data(5, $portada); // Enviar datos binarios correctamente
         
         if ($insert_stmt->execute()) {

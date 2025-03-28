@@ -13,6 +13,7 @@ include("con_db.php");
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
+        /* Estilos CSS anteriores se mantienen igual */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -21,7 +22,24 @@ include("con_db.php");
             background: url(biblioteca.jpg); 
             background-size: 100%;
         }
+        .btn-volver {
+        position: fixed;
+        left: 20px;
+        bottom: 20px;
+        padding: 10px 20px;
+        background-color: #28a745; /* Verde */
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 5px;
+        text-decoration: none;
+        text-align: center;
+        cursor: pointer;
+    }
 
+    .btn-volver:hover {
+        background-color: #218838; /* Verde más oscuro */
+    }
         .barra-superior {
             background-color: #007bff;
             color: white;
@@ -132,6 +150,19 @@ include("con_db.php");
             font-size: 16px;
             padding-right: 25px;
         }
+        
+        /* Nuevos estilos para el contador */
+        .contador-espera {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .input-bloqueado {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -151,12 +182,39 @@ include("con_db.php");
         Bienvenido a la biblioteca
     </div>
     <div id="resultados" class="results"></div>
+    
+    <a href="inicio.php" class="btn-volver">
+    Volver al perfil de usuarios
+</a>
 
 <script>
-// Hash de la contraseña correcta (SHA-256 de "admin123")
+// Configuración de seguridad
 const HASH_CORRECTO = "78cd83e78ae0f4e070a553bd25b365f6236892b8f21f4a17b24c8829c2bdf322";
+const INTENTOS_PERMITIDOS = 3; // 3 intentos iniciales
+const tiemposEspera = [10, 15, 600, 1800, 3600, 7200, 14400, 28800, 57600, 172800]; // 2m, 5m, 10m, 30m, 1h, 2h, 4h, 8h, 16h, 48h
 
-// Función para generar hash SHA-256
+// Obtener o inicializar estado de bloqueo desde localStorage
+function obtenerEstadoBloqueo() {
+    const estado = localStorage.getItem('estadoBloqueo');
+    return estado ? JSON.parse(estado) : {
+        intentosFallidos: 0,
+        tiempoBloqueoHasta: 0
+    };
+}
+
+// Guardar estado de bloqueo en localStorage
+function guardarEstadoBloqueo(intentos, tiempo) {
+    localStorage.setItem('estadoBloqueo', JSON.stringify({
+        intentosFallidos: intentos,
+        tiempoBloqueoHasta: tiempo
+    }));
+}
+
+// Resetear estado de bloqueo (cuando la contraseña es correcta)
+function resetearBloqueo() {
+    guardarEstadoBloqueo(0, 0);
+}
+
 async function generarSHA256(texto) {
     const encoder = new TextEncoder();
     const data = encoder.encode(texto);
@@ -166,12 +224,106 @@ async function generarSHA256(texto) {
     return hashHex;
 }
 
-// Función para verificar la contraseña
+function mostrarMensajeError(intentosRestantes) {
+    return Swal.fire({
+        title: 'Contraseña incorrecta',
+        html: `Te quedan ${intentosRestantes} intento(s) antes de que se active el tiempo de espera.`,
+        icon: 'error',
+        confirmButtonText: 'Intentar nuevamente',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    });
+}
+
+function formatearTiempo(segundos) {
+    const horas = Math.floor(segundos / 3600);
+    const minutos = Math.floor((segundos % 3600) / 60);
+    const segs = segundos % 60;
+    
+    let mensaje = '';
+    if (horas > 0) mensaje += `${horas}h `;
+    if (minutos > 0) mensaje += `${minutos}m `;
+    if (segs > 0 && horas === 0) mensaje += `${segs}s`;
+    return mensaje.trim();
+}
+
 async function verificarAcceso() {
-    const { value: contrasena } = await Swal.fire({
+    // Obtener estado actual
+    const estado = obtenerEstadoBloqueo();
+    let { intentosFallidos, tiempoBloqueoHasta } = estado;
+    
+    // Verificar si estamos en periodo de bloqueo
+    const ahora = Math.floor(Date.now() / 1000);
+    if (ahora < tiempoBloqueoHasta) {
+        const segundosRestantes = tiempoBloqueoHasta - ahora;
+        await mostrarDialogoBloqueo(segundosRestantes);
+        return; // No se permite el acceso hasta que termine el bloqueo
+    }
+    
+    let autenticado = false;
+    
+    while (!autenticado) {
+        const { value: contrasena } = await mostrarDialogoContrasena(intentosFallidos);
+        
+        if (contrasena === true) {
+            autenticado = true;
+            // Marcar como autenticado en sessionStorage
+            sessionStorage.setItem('autenticado', 'true');
+        } else if (contrasena === false) {
+            // El usuario canceló o hubo un error
+            intentosFallidos++;
+        } else {
+            // Verificar contraseña
+            const hashIngresado = await generarSHA256(contrasena);
+            
+            if (hashIngresado !== HASH_CORRECTO) {
+                intentosFallidos++;
+                
+                // Manejar según el número de intentos
+                if (intentosFallidos <= INTENTOS_PERMITIDOS) {
+                    // Mostrar mensaje de intentos restantes
+                    const intentosRestantes = INTENTOS_PERMITIDOS - intentosFallidos;
+                    guardarEstadoBloqueo(intentosFallidos, 0);
+                    await mostrarMensajeError(intentosRestantes);
+                    continue; // Continuar en el bucle, el acceso no se otorga
+                } else {
+                    // Calcular tiempo de espera progresivo
+                    const intentosExcedidos = intentosFallidos - INTENTOS_PERMITIDOS;
+                    const indiceTiempo = Math.min(intentosExcedidos - 1, tiemposEspera.length - 1);
+                    const tiempoEsperaActual = tiemposEspera[indiceTiempo];
+                    tiempoBloqueoHasta = ahora + tiempoEsperaActual;
+                    
+                    // Guardar el nuevo estado
+                    guardarEstadoBloqueo(intentosFallidos, tiempoBloqueoHasta);
+                    
+                    await mostrarDialogoBloqueo(tiempoEsperaActual);
+                    continue; // Continuar en el bucle, el acceso no se otorga
+                }
+            }
+            
+            // Restablecer contador de intentos si la contraseña es correcta
+            resetearBloqueo();
+            autenticado = true;
+            sessionStorage.setItem('autenticado', 'true');
+        }
+    }
+}
+
+function mostrarDialogoContrasena(intentosFallidos) {
+    let html = '<input type="password" id="contrasena" class="swal2-input" placeholder="Contraseña">';
+    let intentosRestantes = INTENTOS_PERMITIDOS - intentosFallidos;
+    
+    if (intentosRestantes > 0 && intentosRestantes <= INTENTOS_PERMITIDOS) {
+        html += `<div class="intentos-restantes">Intentos restantes: ${intentosRestantes}</div>`;
+    }
+    
+    return Swal.fire({
         title: 'Acceso restringido',
-        html: '<input type="password" id="contrasena" class="swal2-input" placeholder="Contraseña">',
+        html: html,
         confirmButtonText: 'Ingresar',
+        showCancelButton: true,
+        cancelButtonText: 'Volver', // Usamos el símbolo de equis
+        cancelButtonAriaLabel: 'Cancelar y salir',
         focusConfirm: false,
         allowOutsideClick: false,
         allowEscapeKey: false,
@@ -184,22 +336,64 @@ async function verificarAcceso() {
                 return false;
             }
             
-            const hashIngresado = await generarSHA256(contrasenaIngresada);
+            return contrasenaIngresada;
+        }
+    }).then((result) => {
+        // Si se hace clic en la equis (cancel)
+        if (result.dismiss === Swal.DismissReason.cancel) {
+            window.location.href = 'inicio.php';
+            return false; // Retornamos false para indicar que el usuario canceló
+        }
+        return result; // De lo contrario, retornamos el resultado normal
+    });
+}
+async function mostrarDialogoBloqueo(segundosRestantes) {
+    let tiempoInicial = segundosRestantes;
+    let tiempoActual = segundosRestantes;
+    
+    // Crear el diálogo
+    const { value: resultado } = await Swal.fire({
+        title: 'Demasiados intentos fallidos',
+        html: `
+            <p>Debes esperar antes de intentar nuevamente.</p>
+            <div class="contador-espera">Tiempo restante: ${formatearTiempo(tiempoActual)}</div>
+            <input type="password" id="contrasena" class="swal2-input input-bloqueado" placeholder="Contraseña" disabled>
+        `,
+        icon: 'error',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            // Iniciar el contador
+            const contadorElement = Swal.getPopup().querySelector('.contador-espera');
+            const inputElement = Swal.getPopup().querySelector('#contrasena');
             
-            if (hashIngresado !== HASH_CORRECTO) {
-                Swal.showValidationMessage('Contraseña incorrecta');
-                return false;
-            }
+            const intervalo = setInterval(() => {
+                tiempoActual--;
+                contadorElement.textContent = `Tiempo restante: ${formatearTiempo(tiempoActual)}`;
+                
+                if (tiempoActual <= 0) {
+                    clearInterval(intervalo);
+                    Swal.close();
+                }
+            }, 1000);
             
-            // Marcar como autenticado en sessionStorage
-            sessionStorage.setItem('autenticado', 'true');
-            return true;
+            // Almacenar el intervalo para limpiarlo si el diálogo se cierra
+            Swal.getPopup().setAttribute('data-intervalo', intervalo);
+        },
+        willClose: () => {
+            // Limpiar el intervalo al cerrar
+            const intervalo = Swal.getPopup().getAttribute('data-intervalo');
+            if (intervalo) clearInterval(intervalo);
         }
     });
     
-    if (!contrasena) {
-        return verificarAcceso();
+    // Después de que termine el tiempo, mostrar el diálogo normal
+    if (tiempoActual <= 0) {
+        return verificarAcceso(); // Volver a intentar
     }
+    
+    return false;
 }
 
 // Verificar autenticación al cargar la página
@@ -213,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Función para buscar libros
 function buscarLibro() {
     let query = document.getElementById("search").value;
 
@@ -245,6 +438,7 @@ function buscarLibro() {
     })
     .catch(error => console.error("Error en la búsqueda:", error));
 }
+
 </script>
 
 </body>

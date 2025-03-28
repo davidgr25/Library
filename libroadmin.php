@@ -168,7 +168,6 @@ if (isset($_GET['id'])) {
             <p><strong>Existencias:</strong> <?php echo htmlspecialchars($libro['existencia']); ?></p>
             <p><strong>Estanteria:</strong> <?php echo htmlspecialchars($libro['estanteria']); ?></p>
             <p><strong>Piso:</strong> <?php echo htmlspecialchars($libro['piso']); ?></p>
-            <p><strong>Nivel:</strong> <?php echo htmlspecialchars($libro['nivel']); ?></p>
             <p><strong>Descripción:</strong> <?php echo htmlspecialchars($libro['descripcion']); ?></p>
 
             <img class = "imagen" src="<?php echo !empty($libro['portada']) ? 'data:image/jpeg;base64,' . base64_encode($libro['portada']) : 'ruta/a/imagen/default.jpg'; ?>" alt="Portada del libro">
@@ -197,8 +196,6 @@ if (isset($_GET['id'])) {
                 <input class="campo" type="text" name="estanteria" maxlength="2" value="<?php echo htmlspecialchars($libro['estanteria']); ?>" required><br>
                 <label>Piso:</label>
                 <input class="campo" type="number" name="piso" min="1" max="4" value="<?php echo htmlspecialchars($libro['piso']); ?>" required><br>
-                <label>Nivel:</label>
-                <input class="campo" type="number" name="nivel" min="1" max="9" value="<?php echo htmlspecialchars($libro['nivel']); ?>" required><br>
                 <label>Descripción:</label>
                 <textarea class="campo" name="descripcion" required><?php echo htmlspecialchars($libro['descripcion']); ?></textarea><br>
                 <label>Portada:</label>
